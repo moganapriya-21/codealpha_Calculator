@@ -1,0 +1,318 @@
+/* ============================================================
+   CALCULATOR — style.css
+   Theme: Deep dark glass-morphism with teal + amber accents
+   Fonts: Outfit (UI) · JetBrains Mono (numbers)
+   ============================================================ */
+
+/* ── CSS Custom Properties ─────────────────────────────────── */
+:root {
+  /* Background layers */
+  --bg-page:       #090b0f;
+  --bg-card:       rgba(4, 7, 12, 0.82);
+  --bg-display:    rgba(13, 17, 23, 0.9);
+
+  /* Button surfaces */
+  --btn-util:      rgba(42, 48, 62, 0.80);
+  --btn-num:       rgba(28, 33, 45, 0.85);
+  --btn-op:        rgba(0, 188, 160, 0.18);
+  --btn-eq:        #00bca0;
+
+  /* Accents */
+  --accent-teal:   #00bca0;
+  --accent-amber:  #f5a623;
+  --accent-op-txt: #00e8c6;
+
+  /* Text */
+  --txt-primary:   #e8ecf0;
+  --txt-secondary: #6b7585;
+  --txt-util:      #a8b4c0;
+  --txt-op:        var(--accent-op-txt);
+  --txt-eq:        #0a0c10;
+
+  /* Borders */
+  --border-card:   rgba(255, 255, 255, 0.07);
+  --border-btn:    rgba(255, 255, 255, 0.06);
+
+  /* Shadows */
+  --shadow-card:   0 32px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--border-card);
+  --shadow-btn:    0 4px 14px rgba(0, 0, 0, 0.35);
+  --shadow-eq:     0 6px 28px rgba(0, 188, 160, 0.45);
+
+  /* Radii */
+  --r-card: 28px;
+  --r-btn:  18px;
+
+  /* Transitions */
+  --t-fast: 110ms ease;
+  --t-mid:  200ms cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ── Reset & Base ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; }
+
+body {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-page);
+  font-family: 'Outfit', sans-serif;
+  /* Subtle grain texture via SVG data URI */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  overflow: hidden;
+}
+
+/* ── Page layout / ambient glows ──────────────────────────── */
+.calculator-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  width: 100%;
+}
+
+/* Decorative blurred colour orbs behind the card */
+.glow {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.22;
+}
+.glow--teal  { width: 420px; height: 420px; background: var(--accent-teal);  top: -60px;  right: -80px; }
+.glow--amber { width: 320px; height: 320px; background: var(--accent-amber); bottom: -60px; left: -60px; }
+
+/* ── Calculator Card ────────────────────────────────────────── */
+.calculator {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 380px;
+  background: var(--bg-card);
+  border-radius: var(--r-card);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  padding: 24px 20px 20px;
+
+  /* Fade-in on load */
+  animation: cardIn 0.5s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+/* ── Display ────────────────────────────────────────────────── */
+.display {
+  background: var(--bg-display);
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.05);
+  padding: 20px 22px 16px;
+  margin-bottom: 18px;
+  min-height: 108px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+/* History / expression row */
+.display__history {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 300;
+  color: var(--txt-secondary);
+  letter-spacing: 0.03em;
+  min-height: 22px;
+  text-align: right;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--t-mid);
+}
+
+/* Primary value */
+.display__value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 3rem;
+  font-weight: 400;
+  color: var(--txt-primary);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-align: right;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: font-size var(--t-fast), color var(--t-mid);
+}
+
+/* Shrink font for long numbers */
+.display__value.shrink-1 { font-size: 2.2rem; }
+.display__value.shrink-2 { font-size: 1.6rem; }
+
+/* Flash colour on result */
+.display__value.result-flash { color: var(--accent-teal); }
+
+/* ── Button Grid ────────────────────────────────────────────── */
+.btn-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+/* ── Base Button ────────────────────────────────────────────── */
+.btn {
+  position: relative;
+  border: 1px solid var(--border-btn);
+  border-radius: var(--r-btn);
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+
+  /* Smooth transitions for hover/active */
+  transition:
+    background var(--t-mid),
+    transform  var(--t-fast),
+    box-shadow var(--t-mid),
+    border-color var(--t-mid);
+}
+
+/* Ripple pseudo-element */
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  border-radius: inherit;
+  transition: opacity var(--t-fast);
+}
+.btn:active::after { opacity: 0.08; }
+
+/* ─ Utility buttons (C, +/−, %) ─ */
+.btn--util {
+  background: var(--btn-util);
+  color: var(--txt-util);
+}
+.btn--util:hover {
+  background: rgba(58, 66, 84, 0.90);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: var(--shadow-btn);
+  transform: translateY(-2px);
+}
+.btn--util:active { transform: translateY(0) scale(0.96); }
+
+/* ─ Number buttons ─ */
+.btn--num {
+  background: var(--btn-num);
+  color: var(--txt-primary);
+}
+.btn--num:hover {
+  background: rgba(40, 47, 62, 0.95);
+  border-color: rgba(255,255,255,0.10);
+  box-shadow: var(--shadow-btn);
+  transform: translateY(-2px);
+}
+.btn--num:active { transform: translateY(0) scale(0.96); }
+
+/* ─ Wide "0" button spans 2 columns ─ */
+.btn--zero {
+  grid-column: span 2;
+  justify-content: flex-start;
+  padding-left: 28px;
+}
+
+/* ─ Operator buttons (÷, ×, −, +) ─ */
+.btn--op {
+  background: var(--btn-op);
+  color: var(--txt-op);
+  border-color: rgba(0, 188, 160, 0.20);
+  font-size: 1.3rem;
+}
+.btn--op:hover {
+  background: rgba(0, 188, 160, 0.28);
+  border-color: rgba(0, 188, 160, 0.40);
+  box-shadow: 0 4px 18px rgba(0, 188, 160, 0.22);
+  transform: translateY(-2px);
+}
+.btn--op:active { transform: translateY(0) scale(0.96); }
+
+/* Active / selected operator highlight */
+.btn--op.active {
+  background: rgba(0, 188, 160, 0.32);
+  border-color: var(--accent-teal);
+  box-shadow: 0 0 0 2px rgba(0,188,160,0.35);
+  color: #fff;
+}
+
+/* ─ Delete button ─ */
+.btn--delete {
+  background: rgba(245, 75, 75, 0.14);
+  color: #f57373;
+  border-color: rgba(245, 75, 75, 0.18);
+  font-size: 1.1rem;
+}
+.btn--delete:hover {
+  background: rgba(245, 75, 75, 0.25);
+  border-color: rgba(245, 75, 75, 0.38);
+  box-shadow: 0 4px 18px rgba(245, 75, 75, 0.20);
+  transform: translateY(-2px);
+}
+.btn--delete:active { transform: translateY(0) scale(0.96); }
+
+/* ─ Equals button ─ */
+.btn--eq {
+  background: var(--btn-eq);
+  color: var(--txt-eq);
+  border-color: transparent;
+  font-size: 1.3rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-eq);
+}
+.btn--eq:hover {
+  background: #00d4b6;
+  box-shadow: 0 8px 36px rgba(0, 188, 160, 0.60);
+  transform: translateY(-3px);
+}
+.btn--eq:active { transform: translateY(0) scale(0.96); box-shadow: var(--shadow-eq); }
+
+/* ── Error state ────────────────────────────────────────────── */
+.display__value.error { color: #f57373; font-size: 1.6rem; }
+
+/* ── Responsive tweaks ──────────────────────────────────────── */
+@media (max-width: 420px) {
+  .calculator { padding: 18px 14px 16px; }
+  .btn-grid   { gap: 9px; }
+  .btn        { height: 64px; font-size: 1.05rem; border-radius: 16px; }
+  .display__value { font-size: 2.6rem; }
+  .glow       { display: none; }
+}
+
+@media (max-width: 340px) {
+  .btn        { height: 58px; font-size: 0.95rem; }
+  .display__value { font-size: 2rem; }
+}
+
+/* ── Accessibility: focus-visible ring ──────────────────────── */
+.btn:focus-visible {
+  outline: 2px solid var(--accent-teal);
+  outline-offset: 3px;
+}
